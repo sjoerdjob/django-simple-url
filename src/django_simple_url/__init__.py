@@ -14,4 +14,7 @@ class URLTranslator(object):
 
 def simple_url(route, view, *args, **kwargs):
     re_route = URLTranslator().translate(route)
+    re_route = '^' + re_route
+    if not isinstance(view, (list, tuple)):
+        re_route += '$'
     return url(re_route, view, *args, **kwargs)
