@@ -62,10 +62,19 @@ class URLTranslator(object):
 
         return ''.join(chunks)
 
+    def url(self, route, view, *args, **kwargs):
+        re_route = self.translate(route)
+        re_route = '^' + re_route
+        if not isinstance(view, (list, tuple)):
+            re_route += '$'
+        return url(re_route, view, *args, **kwargs)
 
-def simple_url(route, view, *args, **kwargs):
-    re_route = URLTranslator().translate(route)
-    re_route = '^' + re_route
-    if not isinstance(view, (list, tuple)):
-        re_route += '$'
-    return url(re_route, view, *args, **kwargs)
+
+# Make it easy to use the default translator.
+_default_translator = URLTranslator()
+
+simple_url = _default_translator.url
+register = _default_translator.register
+
+# Make sure the default translator has some handy defaults.
+_default_translator.register('int', '[0-9]+')

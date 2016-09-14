@@ -27,6 +27,18 @@ class SimpleURLTests(SimpleTestCase):
             'month': '02',
         })
 
+    def test_parameter_typed_parameters(self):
+        def stub_view(): pass
+        resolver = simple_url('<int:year>/<int:month>/', stub_view)
+
+        match = resolver.resolve('2003/02/')
+        self.assertIs(match.func, stub_view)
+        self.assertEqual(match.args, ())
+        self.assertEqual(match.kwargs, {
+            'year': '2003',
+            'month': '02',
+        })
+
     def test_anchoring_with_simple_view(self):
         def stub_view(): pass
         resolver = simple_url('hello/world/', stub_view)
