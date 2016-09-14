@@ -9,7 +9,7 @@ def _np(name, regex):
 
 
 IDENT_REGEX = r'[A-Za-z0-9_]+'
-TYPED_PARAMATER_REGEX = re.compile(''.join([
+TYPED_PARAMETER_REGEX = re.compile(''.join([
     r'<',
     _np('type_name', IDENT_REGEX),
     r':',
@@ -50,7 +50,7 @@ class URLTranslator(object):
         unparsed = route
         chunks = []
 
-        regexes = [TYPED_PARAMATER_REGEX, UNTYPED_PARAMETER_REGEX]
+        regexes = [TYPED_PARAMETER_REGEX, UNTYPED_PARAMETER_REGEX]
         while True:
             match = _earliest_match(unparsed, *regexes)
             if not match:
