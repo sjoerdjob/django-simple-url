@@ -10,13 +10,13 @@ def _np(name, regex):
 
 IDENT_REGEX = r'[A-Za-z0-9_]+'
 TYPED_PARAMATER_REGEX = re.compile(''.join([
-    r'\\<',
+    r'<',
     _np('type_name', IDENT_REGEX),
-    r'\\:',
+    r':',
     _np('parameter', IDENT_REGEX),
-    r'\\>',
+    r'>',
 ]))
-UNTYPED_PARAMETER_REGEX = re.compile(r'\\:' + _np('parameter', IDENT_REGEX))
+UNTYPED_PARAMETER_REGEX = re.compile(r':' + _np('parameter', IDENT_REGEX))
 
 
 def _earliest_match(string, *regexes):
@@ -47,16 +47,16 @@ class URLTranslator(object):
             raise ValueError("Unknown regex type: {}".format(type_name))
 
     def translate(self, route):
-        unparsed = re.escape(route)
+        unparsed = route
         chunks = []
 
         regexes = [TYPED_PARAMATER_REGEX, UNTYPED_PARAMETER_REGEX]
         while True:
             match = _earliest_match(unparsed, *regexes)
             if not match:
-                chunks.append(unparsed)
+                chunks.append(re.escape(unparsed))
                 break
-            chunks.append(unparsed[:match.start()])
+            chunks.append(re.escape(unparsed[:match.start()]))
             chunks.append(self._translate_part(**match.groupdict()))
             unparsed = unparsed[match.end():]
 
