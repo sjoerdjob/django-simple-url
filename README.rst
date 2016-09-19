@@ -32,7 +32,7 @@ It also works nicely with other apps, like for instance the Django Admin.
     from django_simple_url import simple_url
 
     urlpatterns = [
-        url('admin/', admin.site.urls),
+        simple_url('admin/', admin.site.urls),
     ]
 
 Caveats
