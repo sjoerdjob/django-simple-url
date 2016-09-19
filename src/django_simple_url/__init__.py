@@ -39,7 +39,7 @@ class URLTranslator(object):
 
     def _translate_part(self, parameter, type_name=None):
         if type_name is None:
-            return _np(parameter, IDENT_REGEX)
+            return _np(parameter, r'[A-Za-z0-9_-]+')
 
         try:
             return _np(parameter, self._mapping_registry[type_name])

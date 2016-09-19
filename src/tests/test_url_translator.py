@@ -22,7 +22,7 @@ class URLTranslatorTests(SimpleTestCase):
     def test_url_translator_maps_parameters_to_patterns(self):
         self.assertEqual(
             self.translator.translate(':year/'),
-            r'(?P<year>[A-Za-z0-9_]+)\/',
+            r'(?P<year>[A-Za-z0-9_-]+)\/',
         )
 
     def test_registering(self):
