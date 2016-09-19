@@ -78,3 +78,4 @@ register = _default_translator.register
 
 # Make sure the default translator has some handy defaults.
 _default_translator.register('int', '[0-9]+')
+_default_translator.register('slug', '[A-Za-z0-9_-]+')
