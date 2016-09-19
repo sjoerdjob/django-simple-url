@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='django-simple-url',
-    version='0.0.1',
+    version='0.0.2',
     description='Simpler URL specification for Django.',
     author="Sjoerd Job Postmus",
     author_email='sjoerdjob@sjec.nl',
