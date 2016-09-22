@@ -35,8 +35,8 @@ class SimpleURLTests(SimpleTestCase):
         self.assertIs(match.func, stub_view)
         self.assertEqual(match.args, ())
         self.assertEqual(match.kwargs, {
-            'year': '2003',
-            'month': '02',
+            'year': 2003,
+            'month': 2,
         })
 
     def test_anchoring_with_simple_view(self):
