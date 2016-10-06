@@ -38,3 +38,9 @@ class URLTranslatorTests(SimpleTestCase):
             self.translator.translate('<foo_int:year>/'),
             (r'(?P<year>[0-9]+)\/', {'year': int}),
         )
+
+    def test_parameters_between_angled_brackets(self):
+        self.assertEqual(
+            self.translator.translate('<year>/'),
+            (r'(?P<year>[A-Za-z0-9_-]+)\/', {}),
+        )

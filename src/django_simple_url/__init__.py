@@ -11,9 +11,9 @@ def _np(name, regex):
 
 IDENT_REGEX = r'[A-Za-z0-9_]+'
 TYPED_PARAMETER_REGEX = re.compile(''.join([
-    r'<',
+    r'<(?:',
     _np('type_name', IDENT_REGEX),
-    r':',
+    r':)?',
     _np('parameter', IDENT_REGEX),
     r'>',
 ]))
@@ -44,6 +44,7 @@ class CastingRegexURLPattern(RegexURLPattern):
                 if name in kwargs:
                     kwargs[name] = caster(kwargs[name])
         return resolvermatch
+
 
 class URLTranslator(object):
     def __init__(self):
