@@ -1,7 +1,19 @@
 import re
+import warnings
 
 from django.conf.urls import url
 from django.urls import RegexURLPattern, RegexURLResolver
+
+from .converters import (
+    IntConverter,
+    OldStyleConverter,
+    SlugConverter,
+    StrConverter,
+)
+
+
+# Caching this instance, because it is the default.
+_str_converter = StrConverter()
 
 
 def _np(name, regex):
@@ -32,17 +44,17 @@ def _earliest_match(string, *regexes):
 
 
 class CastingRegexURLPattern(RegexURLPattern):
-    def __init__(self, casts, regex, callback, default_args=None, name=None):
-        self._casts = casts
+    def __init__(self, converters, regex, callback, default_args=None, name=None):
+        self._converters = converters
         super(CastingRegexURLPattern, self).__init__(regex, callback, default_args, name)
 
     def resolve(self, path):
         resolvermatch = super(CastingRegexURLPattern, self).resolve(path)
         if resolvermatch:
             kwargs = resolvermatch.kwargs
-            for name, caster in self._casts.items():
+            for name, converter in self._converters.items():
                 if name in kwargs:
-                    kwargs[name] = caster(kwargs[name])
+                    kwargs[name] = converter.to_python(kwargs[name])
         return resolvermatch
 
 
@@ -50,12 +62,22 @@ class URLTranslator(object):
     def __init__(self):
         self._mapping_registry = {}
 
-    def register(self, name, regex, cast=None):
-        self._mapping_registry[name] = (regex, cast)
+    def register(self, name, converter, to_python=None):
+        if isinstance(converter, str):
+            warnings.warn(
+                "You should supply a subclass of BaseConverter.",
+                DeprecationWarning,
+            )
+            self._mapping_registry[name] = OldStyleConverter(
+                converter,
+                to_python,
+            )
+        else:
+            self._mapping_registry[name] = converter
 
-    def _get_pattern_and_cast(self, type_name=None):
+    def _get_converter(self, type_name=None):
         if type_name is None:
-            return r'[A-Za-z0-9_-]+', None
+            return _str_converter
 
         try:
             return self._mapping_registry[type_name]
@@ -65,7 +87,7 @@ class URLTranslator(object):
     def translate(self, route):
         unparsed = route
         chunks = []
-        casts = {}
+        converters = {}
 
         regexes = [TYPED_PARAMETER_REGEX, UNTYPED_PARAMETER_REGEX]
         while True:
@@ -80,26 +102,26 @@ class URLTranslator(object):
             groups = match.groupdict()
             parameter = groups['parameter']
             type_name = groups.get('type_name', None)
-            pattern, cast = self._get_pattern_and_cast(type_name)
-            chunks.append(_np(parameter, pattern))
+            converter = self._get_converter(type_name)
+            chunks.append(_np(parameter, converter.get_regex()))
 
-            if cast is not None:
-                casts[parameter] = cast
+            if converter is not None:
+                converters[parameter] = converter
 
             unparsed = unparsed[match.end():]
 
-        return ''.join(chunks), casts
+        return ''.join(chunks), converters
 
     def url(self, route, view, kwargs=None, name=None):
-        re_route, casts = self.translate(route)
+        re_route, converters = self.translate(route)
         re_route = '^' + re_route
         if isinstance(view, (list, tuple)):
-            assert not casts, 'casts in include-patterns not supported'
+            assert not converters, 'converters in include-patterns not supported'
             urlconf_module, app_name, namespace = view
             return RegexURLResolver(re_route, urlconf_module, kwargs, app_name=app_name, namespace=namespace)
         else:
             re_route += '$'
-            return CastingRegexURLPattern(casts, re_route, view, kwargs, name)
+            return CastingRegexURLPattern(converters, re_route, view, kwargs, name)
 
 
 # Make it easy to use the default translator.
@@ -109,5 +131,6 @@ simple_url = _default_translator.url
 register = _default_translator.register
 
 # Make sure the default translator has some handy defaults.
-_default_translator.register('int', '[0-9]+', cast=int)
-_default_translator.register('slug', '[A-Za-z0-9_-]+')
+_default_translator.register('int', IntConverter())
+_default_translator.register('slug', SlugConverter())
+_default_translator.register('str', _str_converter)
